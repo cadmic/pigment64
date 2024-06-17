@@ -64,6 +64,7 @@ pub enum ImageFormat {
 /// Each variant corresponds to a specific image type, such as indexed color (Ci), grayscale (I),
 /// grayscale with alpha (Ia), or red-green-blue-alpha (RGBA).
 ///
+#[cfg_attr(feature = "python_bindings", pyclass(rename_all = "UPPERCASE"))]
 #[derive(Copy, Clone, Debug, PartialEq, EnumCount, EnumIter, Eq, Hash, TryFromPrimitive)]
 #[repr(u8)]
 pub enum ImageType {
@@ -138,5 +139,8 @@ pub enum TextureLUT {
 #[cfg(feature = "python_bindings")]
 #[pymodule]
 fn pigment64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    m.add_class::<ImageType>()?;
+    m.add_class::<PNGImage>()?;
+    m.add_function(wrap_pyfunction!(image::png_image::py_create_palette_from_png, m)?)?;
     Ok(())
 }

@@ -6,6 +6,12 @@ use byteorder::{BigEndian, WriteBytesExt};
 use png::{BitDepth, ColorType};
 use std::io::{Read, Write};
 
+#[cfg(feature = "python_bindings")]
+use std::borrow::Cow;
+#[cfg(feature = "python_bindings")]
+use pyo3::prelude::*;
+
+#[cfg_attr(feature = "python_bindings", pyclass)]
 pub struct PNGImage {
     data: Vec<u8>,
     color_type: ColorType,
@@ -309,6 +315,23 @@ impl PNGImage {
     }
 }
 
+#[cfg(feature = "python_bindings")]
+#[pymethods]
+impl PNGImage {
+    #[staticmethod]
+    #[pyo3(name = "read")]
+    pub fn py_read(bytes: &[u8]) -> Result<Self> {
+        Self::read(bytes)
+    }
+
+    #[pyo3(name = "as_native")]
+    pub fn py_as_native(&self, image_type: ImageType) -> Result<Cow<[u8]>> {
+        let mut output = Vec::new();
+        self.as_native(&mut output, image_type)?;
+        Ok(Cow::Owned(output))
+    }
+}
+
 pub fn create_palette_from_png<R: Read, W: Write>(r: R, writer: &mut W) -> Result<()> {
     let decoder = png::Decoder::new(r);
     let reader = decoder.read_info()?;
@@ -335,4 +358,13 @@ pub fn create_palette_from_png<R: Read, W: Write>(r: R, writer: &mut W) -> Resul
     }
 
     Ok(())
+}
+
+#[cfg(feature = "python_bindings")]
+#[pyfunction]
+#[pyo3(name = "create_palette_from_png")]
+pub fn py_create_palette_from_png(r: &[u8]) -> Result<Cow<[u8]>> {
+    let mut output = Vec::new();
+    create_palette_from_png(r, &mut output)?;
+    Ok(Cow::Owned(output))
 }
