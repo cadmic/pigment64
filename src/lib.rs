@@ -11,6 +11,9 @@ mod utils;
 
 use strum_macros::{EnumCount, EnumIter};
 
+#[cfg(feature = "python_bindings")]
+use pyo3::prelude::*;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, TryFromPrimitive)]
 #[repr(u8)]
 pub enum ImageSize {
@@ -130,4 +133,10 @@ pub enum TextureLUT {
     None = 0,
     Rgba16 = 2,
     Ia16 = 3,
+}
+
+#[cfg(feature = "python_bindings")]
+#[pymodule]
+fn pigment64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    Ok(())
 }
